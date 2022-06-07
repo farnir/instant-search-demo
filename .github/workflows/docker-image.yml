@@ -2,8 +2,7 @@ name: Build Node App Image
 
 on:
   push:
-    branches: [ "master" ]
-    tags: [ "v*.*.*" ]
+    branches: [ "master/v*.*.*-*" ]
   pull_request:
     types: [ "opened" ]
     branches: [ "master" ]
