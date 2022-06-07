@@ -13,16 +13,13 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-
   build-and-push-image:
-
     runs-on: ubuntu-latest
-
-     steps:
+    steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-       - name: Log in to the Container registry
+      - name: Log in to the Container registry
         uses: docker/login-action@v2
         with:
           registry: ${{ env.REGISTRY }}
