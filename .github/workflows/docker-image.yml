@@ -1,0 +1,39 @@
+name: Build Node App Image
+
+on:
+  push:
+    branches: [ "master" ]
+    tags: [ "v*.*.*" ]
+  pull_request:
+    branches: [ "master" ]
+
+env:
+  # Use docker.io for Docker Hub if empty
+  REGISTRY: ghcr.io
+  # github.repository as <account>/<repo>
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [9.x, 10.x, 11.x]
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    - name: Run App tests
+      run: npm test
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag ${env.REGISTRY}/${env.IMAGE_NAME}:${GITHUB_REF##*/}
+    - name: Push to ECR
+      if: github.event_name != 'pull_request'
+      run: docker push ${env.REGISTRY}/${env.IMAGE_NAME}:${GITHUB_REF##*/}
