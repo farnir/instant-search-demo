@@ -5,33 +5,42 @@ on:
     branches: [ "master" ]
     tags: [ "v*.*.*" ]
   pull_request:
+    types: [ "opened" ]
     branches: [ "master" ]
 
 env:
-  # Use docker.io for Docker Hub if empty
   REGISTRY: ghcr.io
-  # github.repository as <account>/<repo>
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-
-  build:
-
+  build-and-push-image:
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v3
-    - name: Use Node.js 9.x
-      uses: actions/setup-node@v3
-      with:
-        node-version: 9.x
-        cache: 'npm'
-    - name: Install dependancy
-      run: npm install
-    - name: Run tests
-      run: npm test
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag $REGISTRY/$IMAGE_NAME:${GITHUB_REF##*/}
-    - name: Push to registry Github Archives
-      if: github.event_name != 'pull_request'
-      run: docker push $REGISTRY/$IMAGE_NAME:${GITHUB_REF##*/}
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Use Node.js 9.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 9.x
+          cache: 'npm'
+    
+      - name: Install dependancy
+        run: npm install
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build the Docker image
+        run: docker build . --file Dockerfile --tag $REGISTRY/$IMAGE_NAME:${GITHUB_REF##*/}
+
+      - name: Push to registry Github Archives
+        if: github.event_name != 'pull_request'
+        run: docker push $REGISTRY/$IMAGE_NAME:${GITHUB_REF##*/}
