@@ -19,21 +19,19 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [9.x, 10.x, 11.x]
-
     steps:
     - uses: actions/checkout@v3
-    - name: Use Node.js ${{ matrix.node-version }}
+    - name: Use Node.js 9.x
       uses: actions/setup-node@v3
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version: 9.x
         cache: 'npm'
-    - name: Run App tests
+    - name: Install dependancy
+      run: npm install
+    - name: Run tests
       run: npm test
     - name: Build the Docker image
       run: docker build . --file Dockerfile --tag ${env.REGISTRY}/${env.IMAGE_NAME}:${GITHUB_REF##*/}
-    - name: Push to ECR
+    - name: Push to registry Github Archives
       if: github.event_name != 'pull_request'
       run: docker push ${env.REGISTRY}/${env.IMAGE_NAME}:${GITHUB_REF##*/}
